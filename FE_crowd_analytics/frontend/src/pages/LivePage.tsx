@@ -183,14 +183,6 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
       if (!capCtx) return;
       capCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
 
-      // Render raw local video feed on main canvas so camera is ALWAYS live immediately
-      const mainCtx = canvas.getContext('2d');
-      if (mainCtx) {
-        canvas.width = captureCanvas.width;
-        canvas.height = captureCanvas.height;
-        mainCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      }
-
       const currentSessionId = activeSessionIdRef.current;
       if (currentSessionId && !isSendingRef.current) {
         isSendingRef.current = true;
@@ -221,6 +213,9 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
                   const img = new Image();
                   img.onload = () => {
                     if (canvasRef.current) {
+                      canvasRef.current.width = img.width || captureCanvas.width;
+                      canvasRef.current.height = img.height || captureCanvas.height;
+                      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
                       ctx.drawImage(img, 0, 0, canvasRef.current.width, canvasRef.current.height);
                     }
                   };
@@ -381,22 +376,22 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
         {/* Left Column: Live Video + Circle Vector Hologram Radar Ring */}
         <div className="lg:col-span-3 space-y-4">
           <div className="cyber-card relative bg-[#071120] border border-sky-500/50 rounded-2xl overflow-hidden shadow-2xl aspect-video flex items-center justify-center">
-            {/* Hidden Raw HTML5 Video Element */}
+            {/* Raw HTML5 Video Element (Hardware Accelerated Camera Feed) */}
             <video
               ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-0"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none z-0 opacity-100"
               autoPlay
               muted
               playsInline
             />
 
-            {/* AI Annotated Frame Canvas */}
+            {/* AI Annotated Frame Canvas Overlay */}
             <canvas
               ref={canvasRef}
               width={640}
               height={480}
               onClick={handleCanvasClick}
-              className="w-full h-full object-contain cursor-crosshair relative z-10"
+              className="absolute inset-0 w-full h-full object-contain cursor-crosshair z-10"
               title="Click on any person box to focus details"
             />
 
