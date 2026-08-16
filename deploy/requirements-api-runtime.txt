@@ -1,0 +1,14 @@
+# API-only Modal inference/runtime packages.
+# Keep this list separate from requirements-runtime.txt: the latter also
+# supports the local Gradio UI, whereas the deployed ASGI service is FastAPI
+# only and must not create a second UI/session manager surface.
+ultralytics==8.4.63
+lap==0.5.13
+fastapi==0.141.1
+python-multipart==0.0.32
+opencv-python-headless==4.12.0.88
+torch==2.8.0
+torchvision==0.23.0
+numpy==2.2.6
+pillow==11.3.0
+PyYAML==6.0.3
