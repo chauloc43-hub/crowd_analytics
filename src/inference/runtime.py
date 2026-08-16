@@ -508,12 +508,19 @@ class ModelRuntime:
             "model_and_output_transfer": 0.0,
             "total": 0.0,
         }
+        if self.device.type == "cpu":
+            try:
+                torch.set_num_threads(2)
+            except Exception:
+                pass
         self._reset_detector_telemetry()
         self._init_yolo()
         if self.face_enabled:
             self._init_yunet()
             self._init_gender_classifier()
         self._init_body_gender_classifier()
+        import gc
+        gc.collect()
 
     def _init_yolo(self) -> None:
         configured_model = Path(self.config["person_detector"]["model_path"])
