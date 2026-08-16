@@ -190,6 +190,7 @@ image = _runtime_image()
 @app.function(
     image=image,
     timeout=900,
+    min_containers=1,
     max_containers=2,
     scaledown_window=600,
 )

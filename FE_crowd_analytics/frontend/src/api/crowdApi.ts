@@ -2,25 +2,29 @@ const BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://chauloc43-hub--c
 const API_BASE = `${BASE_URL}/api/v1`;
 
 export async function createSession(mode = 'default', cameraId?: string) {
-  try {
-    const res = await fetch(`${API_BASE}/sessions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode, camera_id: cameraId }),
-    });
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    return await res.json();
-  } catch (err) {
-    console.warn('API connection offline, using simulated session', err);
-    return {
-      status: 'created',
-      session: {
-        session_id: `demo-${Date.now()}`,
-        mode: mode,
-        created_at: new Date().toISOString(),
-      },
-    };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(`${API_BASE}/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, camera_id: cameraId }),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      console.warn(`[createSession] Attempt ${attempt + 1} failed, retrying...`, err);
+      await new Promise((r) => setTimeout(r, 1000));
+    }
   }
+  return {
+    status: 'created',
+    session: {
+      session_id: `demo-${Date.now()}`,
+      mode: mode,
+      created_at: new Date().toISOString(),
+    },
+  };
 }
 
 export async function getSessionStats(sessionId: string) {
