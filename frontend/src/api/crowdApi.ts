@@ -8,7 +8,7 @@ const getBaseUrl = () => {
       return `${window.location.protocol}//${host}:8000`;
     }
   }
-  return 'https://nhozpropan3-crowd.hf.space';
+  return 'https://hoangloc2011-crowda.hf.space';
 };
 
 const BASE_URL = getBaseUrl();

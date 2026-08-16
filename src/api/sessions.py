@@ -8,7 +8,12 @@ or stream-scoped ``person_id`` from leaking across cameras or browser peers.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+try:
+    from datetime import UTC
+except ImportError:
+    UTC = timezone.utc
 from threading import RLock
 from time import monotonic
 from typing import Any, Callable, Protocol

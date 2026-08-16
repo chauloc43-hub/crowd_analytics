@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source code and pre-trained assets
 COPY . .
 
-# Expose Hugging Face Space default port
-EXPOSE 7860
+# Support dynamic cloud PORT (Render uses PORT env, fallback to 8000)
+ENV PORT=8000
+EXPOSE 8000
 
-# Run FastAPI server on port 7860
-CMD ["uvicorn", "src.api.app:create_api_app", "--factory", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "uvicorn src.api.app:create_api_app --factory --host 0.0.0.0 --port ${PORT:-8000}"]
