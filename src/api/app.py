@@ -186,6 +186,15 @@ def create_api_app(
         if assets_dir.exists():
             app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
+    @app.get("/favicon.svg", include_in_schema=False)
+    @app.get("/favicon.ico", include_in_schema=False)
+    def favicon():
+        fav_path = static_dir / "favicon.svg"
+        if fav_path.exists():
+            from fastapi.responses import FileResponse
+            return FileResponse(str(fav_path))
+        return Response(status_code=204)
+
 
     @app.get(f"{API_PREFIX}/health", tags=["service"])
     def health() -> dict[str, Any]:

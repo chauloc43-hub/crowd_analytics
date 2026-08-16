@@ -1,4 +1,17 @@
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://chauloc43-hub--crowd-analytics-v2-web.modal.run').replace(/\/$/, '');
+const getBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) {
+      return `${window.location.protocol}//${host}:8000`;
+    }
+  }
+  return 'https://chauloc43-hub--crowd-analytics-v2-web.modal.run';
+};
+
+const BASE_URL = getBaseUrl();
 const API_BASE = `${BASE_URL}/api/v1`;
 
 export async function createSession(mode = 'default', cameraId?: string) {
