@@ -12,12 +12,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt-get/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 COPY . .
 
-# Pre-download production AI model weights during Docker build on Hugging Face
+RUN pip install --no-cache-dir \
+    ultralytics==8.4.63 \
+    fastapi==0.141.1 \
+    uvicorn \
+    python-multipart==0.0.32 \
+    opencv-python-headless==4.12.0.88 \
+    torch==2.8.0 \
+    torchvision==0.23.0 \
+    numpy==2.2.6 \
+    pillow==11.3.0 \
+    PyYAML==6.0.3
+
+# Pre-download production AI model weights during Docker build
 RUN mkdir -p artifacts/person_detector artifacts/face_detector artifacts/gender_classifier artifacts/body_gender_classifier && \
     curl -L "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt" -o artifacts/person_detector/yolo11n.pt && \
     curl -L "https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx" -o artifacts/face_detector/face_detection_yunet_2023mar.onnx && \

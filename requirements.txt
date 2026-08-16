@@ -1,5 +1,10 @@
-# Local application runtime. The Modal image installs only the production
-# subset at deploy/requirements-runtime.txt.
--r deploy/requirements-runtime.txt
-# The Windows app uses this only when a system FFmpeg binary is unavailable.
-imageio-ffmpeg==0.6.0
+ultralytics==8.4.63
+fastapi==0.141.1
+uvicorn
+python-multipart==0.0.32
+opencv-python-headless==4.12.0.88
+torch==2.8.0
+torchvision==0.23.0
+numpy==2.2.6
+pillow==11.3.0
+PyYAML==6.0.3
