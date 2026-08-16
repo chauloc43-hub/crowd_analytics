@@ -194,7 +194,7 @@ image = _runtime_image()
     max_containers=1,
     scaledown_window=600,
 )
-@modal.concurrent(max_inputs=1)
+@modal.concurrent(max_inputs=32)
 @modal.asgi_app()
 def web():
     """Serve the API-only Modal demonstration.
