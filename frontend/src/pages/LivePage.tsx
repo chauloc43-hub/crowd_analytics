@@ -236,16 +236,21 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
                     const trackId = tr.track_id;
                     const personId = tr.person_id ? `P0${tr.person_id}` : `P0${trackId}`;
                     const gender = tr.gender ? (tr.gender.toLowerCase().includes('female') ? 'Female-presenting' : 'Male-presenting') : 'Unclassified';
-                    const conf = tr.confidence ? `${(tr.confidence * 100).toFixed(1)}%` : '94.2%';
-                    const stateKey = `${trackId}-${gender}`;
+                    const hasConf = typeof tr.confidence === 'number' && tr.confidence > 0;
+                    const confStr = hasConf ? `${(tr.confidence * 100).toFixed(1)}%` : 'Classifying...';
+                    const stateKey = `${trackId}-${gender}-${confStr}`;
 
                     if (!seenTracksRef.current.has(trackId)) {
                       seenTracksRef.current.set(trackId, stateKey);
                       addSystemLog?.(`[TRACKER] New Person Tracked: #${personId} (Track ID: T${trackId}).`);
-                      addSystemLog?.(`[AI CLASSIFICATION] Person #${personId} (T${trackId}) classified: ${gender} (Conf: ${conf} | YuNet Net).`);
+                      if (hasConf) {
+                        addSystemLog?.(`[AI CLASSIFICATION] Person #${personId} (T${trackId}) classified: ${gender} (Conf: ${confStr} | YuNet Net).`);
+                      } else {
+                        addSystemLog?.(`[AI CLASSIFICATION] Person #${personId} (T${trackId}) initial track acquired (YuNet classifying...).`);
+                      }
                     } else if (seenTracksRef.current.get(trackId) !== stateKey) {
                       seenTracksRef.current.set(trackId, stateKey);
-                      addSystemLog?.(`[AI UPDATE] Person #${personId} (T${trackId}) identity updated: ${gender} (${conf}).`);
+                      addSystemLog?.(`[AI UPDATE] Person #${personId} (T${trackId}) identity updated: ${gender} (${confStr}).`);
                     }
                   });
                 }
