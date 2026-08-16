@@ -1,3 +1,0 @@
-# Local deployment CLI only. The remote image installs ../requirements.txt
-# itself, so this does not alter the project's working GPU environment.
-modal==1.4.3

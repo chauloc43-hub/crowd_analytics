@@ -1,6 +1,0 @@
-# Optional WebRTC media runtime for the self-hosted FastAPI demo. The Modal
-# image carries it for API parity; it is not by itself a Modal peer/TURN setup.
-# aiortc 1.15.0 supports Python 3.11 and requires PyAV >=14,<18.  Pinning the
-# compatible PyAV wheel makes deploy images reproducible and avoids FastRTC.
-aiortc==1.15.0
-av==17.1.0

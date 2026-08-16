@@ -1,1 +1,0 @@
-"""Crowd gender analytics package."""
