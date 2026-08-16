@@ -67,12 +67,6 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
   const startStream = async () => {
     setErrorMessage(null);
     try {
-      const sessionRes = await createSession('default');
-      const newSessionId = sessionRes?.session?.session_id || sessionRes?.session?.id;
-      if (newSessionId) {
-        setSessionId(newSessionId);
-      }
-
       const constraints = {
         video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
         audio: false,
@@ -89,8 +83,18 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
       setIsStreaming(true);
       onStreamingChange?.(true);
       addSystemLog?.('[WEBCAM] Camera stream launched successfully (640x480).');
-      addSystemLog?.('[AI] YOLO11n + FastTracker inference loop active.');
-      startFrameLoop(newSessionId);
+
+      // Initialize AI session in parallel while camera feed is already live
+      createSession('default').then((sessionRes) => {
+        const newSessionId = sessionRes?.session?.session_id || sessionRes?.session?.id;
+        if (newSessionId) {
+          setSessionId(newSessionId);
+          addSystemLog?.('[AI] YOLO11n + FastTracker inference loop active.');
+          startFrameLoop(newSessionId);
+        }
+      }).catch((err) => {
+        console.warn('Session init warning:', err);
+      });
     } catch (err: any) {
       console.error('Camera stream error:', err);
       setErrorMessage(`Camera Error: ${err.message || 'Could not access webcam'}`);
