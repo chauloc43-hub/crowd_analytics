@@ -1,0 +1,9 @@
+{
+  "name": "crowd-analytics-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd FE_crowd_analytics/frontend && npm install && npm run build",
+    "dev": "cd FE_crowd_analytics/frontend && npm run dev"
+  }
+}
