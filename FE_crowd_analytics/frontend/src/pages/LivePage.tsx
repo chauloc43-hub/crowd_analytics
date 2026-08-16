@@ -49,6 +49,8 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<any>(null);
   const lastFrameTimeRef = useRef<number>(performance.now());
+  const activeSessionIdRef = useRef<string | null>(null);
+  const isSendingRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!captureCanvasRef.current) {
@@ -67,12 +69,18 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
   const startStream = async () => {
     setErrorMessage(null);
     try {
-      const constraints = {
-        video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: false,
-      };
+      let mediaStream: MediaStream;
+      try {
+        const constraints = {
+          video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false,
+        };
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (e) {
+        console.warn('[WEBCAM] Preferred constraints failed, trying basic video:', e);
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = mediaStream;
 
       if (videoRef.current) {
@@ -82,15 +90,18 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
 
       setIsStreaming(true);
       onStreamingChange?.(true);
-      addSystemLog?.('[WEBCAM] Camera stream launched successfully (640x480).');
+      addSystemLog?.('[WEBCAM] Camera stream launched successfully.');
+
+      // Start local canvas rendering loop immediately so live feed shows right away
+      startFrameLoop();
 
       // Initialize AI session in parallel while camera feed is already live
       createSession('default').then((sessionRes) => {
         const newSessionId = sessionRes?.session?.session_id || sessionRes?.session?.id;
         if (newSessionId) {
+          activeSessionIdRef.current = newSessionId;
           setSessionId(newSessionId);
           addSystemLog?.('[AI] YOLO11n + FastTracker inference loop active.');
-          startFrameLoop(newSessionId);
         }
       }).catch((err) => {
         console.warn('Session init warning:', err);
@@ -116,6 +127,8 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+    activeSessionIdRef.current = null;
+    isSendingRef.current = false;
     setIsStreaming(false);
     onStreamingChange?.(false);
     addSystemLog?.('[STREAM] Camera stream stopped by user.');
@@ -147,7 +160,7 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
     overlaysRef.current = overlays;
   }, [overlays]);
 
-  const startFrameLoop = (activeSessionId: string | null) => {
+  const startFrameLoop = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     intervalRef.current = setInterval(() => {
@@ -170,31 +183,44 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
       if (!capCtx) return;
       capCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
 
-      captureCanvas.toBlob(
-        async (blob) => {
-          if (!blob) return;
-          const sendTime = performance.now();
+      // Render raw local video feed on main canvas so camera is ALWAYS live immediately
+      const mainCtx = canvas.getContext('2d');
+      if (mainCtx) {
+        canvas.width = captureCanvas.width;
+        canvas.height = captureCanvas.height;
+        mainCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
 
-          try {
-            if (activeSessionId) {
-              const res = await submitFrame(activeSessionId, blob, overlaysRef.current);
+      const currentSessionId = activeSessionIdRef.current;
+      if (currentSessionId && !isSendingRef.current) {
+        isSendingRef.current = true;
+        captureCanvas.toBlob(
+          async (blob) => {
+            if (!blob) {
+              isSendingRef.current = false;
+              return;
+            }
+            const sendTime = performance.now();
+
+            try {
+              const res = await submitFrame(currentSessionId, blob, overlaysRef.current);
               if (res && res._session_expired) {
-                console.warn('[LivePage] Session expired or evicted on backend. Halting frame loop.');
-                stopStream();
+                console.warn('[LivePage] Session expired or evicted on backend. Resetting session.');
+                activeSessionIdRef.current = null;
+                setSessionId(null);
+                isSendingRef.current = false;
                 return;
               }
               const roundtripLatency = Math.round(performance.now() - sendTime);
               setLatencyMs(roundtripLatency);
 
-              // Render backend annotated AI frame directly (Pure YOLO + OpenCV visualization from Python Backend)
-              if (res.annotated_frame && canvasRef.current) {
+              // Render backend annotated AI frame directly over canvas
+              if (res && res.annotated_frame && canvasRef.current) {
                 const ctx = canvasRef.current.getContext('2d');
                 if (ctx) {
                   const img = new Image();
                   img.onload = () => {
                     if (canvasRef.current) {
-                      canvasRef.current.width = img.width || captureCanvas.width;
-                      canvasRef.current.height = img.height || captureCanvas.height;
                       ctx.drawImage(img, 0, 0, canvasRef.current.width, canvasRef.current.height);
                     }
                   };
@@ -202,14 +228,13 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
                 }
               }
 
-              if (res.analytics) {
+              if (res && res.analytics) {
                 if (res.analytics.overlay?.tracks) {
                   latestTracksRef.current = res.analytics.overlay.tracks;
                 } else if (res.analytics.tracks) {
                   latestTracksRef.current = res.analytics.tracks;
                 }
 
-                // Log per-person ID tracking & AI classification events to System Telemetry Terminal
                 const currentTracks = res.analytics.overlay?.tracks || res.analytics.tracks || [];
                 if (currentTracks && currentTracks.length > 0) {
                   currentTracks.forEach((tr: any) => {
@@ -232,14 +257,16 @@ export const LivePage: React.FC<LivePageProps> = ({ analytics, onAnalyticsUpdate
 
                 onAnalyticsUpdate(res.analytics);
               }
+            } catch (err) {
+              console.warn('[LivePage] Frame submit warning:', err);
+            } finally {
+              isSendingRef.current = false;
             }
-          } catch (e) {
-            // Silently swallow network jitter
-          }
-        },
-        'image/jpeg',
-        0.85
-      );
+          },
+          'image/jpeg',
+          0.8
+        );
+      }
     }, 150);
   };
 
