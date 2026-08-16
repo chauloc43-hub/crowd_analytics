@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Cyber-HUD Crowd Analytics</title>
+  
+  <!-- Modern Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Design System -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="cyber-theme">
+  <!-- Scanline Background Effect -->
+  <div class="hud-scanlines"></div>
+  <div class="hud-vignette"></div>
+
+  <!-- Main Container -->
+  <div class="hud-app-container">
+    
+    <!-- Top HUD Navigation Header -->
+    <header class="hud-header">
+      <div class="hud-brand">
+        <div class="hud-logo-icon">
+          <i class="fa-solid fa-radar fa-spin-pulse"></i>
+        </div>
+        <div class="hud-brand-text">
+          <h1>CROWD<span class="text-neon-cyan">HUD</span></h1>
+          <span class="hud-sub">AI REALTIME TRACKER v1.0</span>
+        </div>
+      </div>
+
+      <div class="hud-status-badge badge-offline" id="connectionStatus">
+        <span class="status-dot"></span>
+        <span class="status-label">STOPPED</span>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="hud-main-grid">
+      
+      <!-- Primary Viewport (Camera / Video Stream) -->
+      <section class="hud-viewport-card glass-panel">
+        <div class="hud-card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-camera-rotate text-neon-cyan"></i>
+            <span>LIVE FEED</span>
+          </div>
+          
+          <div class="hud-camera-controls">
+            <!-- Camera Switcher (Mobile First: Front/Back Camera) -->
+            <button id="btnSwitchCamera" class="hud-icon-btn" title="Đổi Camera (Trước/Sau)">
+              <i class="fa-solid fa-repeat"></i>
+            </button>
+            <!-- Toggle Mode: Stream vs File -->
+            <div class="mode-selector">
+              <button class="mode-btn active" data-mode="camera" id="btnModeCam"><i class="fa-solid fa-video"></i> CAM</button>
+              <button class="mode-btn" data-mode="file" id="btnModeFile"><i class="fa-solid fa-file-video"></i> FILE</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Display Container -->
+        <div class="hud-video-wrapper">
+          <!-- Live Webcam Feed Video Element -->
+          <video id="webcamVideo" playsinline autoplay muted style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+          
+          <!-- Canvas Overlay for Rendering Bounding Boxes & AI Annotations -->
+          <canvas id="outputCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+
+          <!-- Upload Dropzone (when File mode active) -->
+          <div id="fileDropzone" class="hud-dropzone" style="display: none;">
+            <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+            <p>Kéo thả video vào đây hoặc <span>bấm để chọn file</span></p>
+            <input type="file" id="fileInput" accept="video/mp4,video/mov,video/avi,video/webm" hidden>
+          </div>
+
+          <!-- Futuristic Target Reticle Corners -->
+          <div class="reticle-corner top-left"></div>
+          <div class="reticle-corner top-right"></div>
+          <div class="reticle-corner bottom-left"></div>
+          <div class="reticle-corner bottom-right"></div>
+
+          <!-- Floating Micro Stats Overlay on Video -->
+          <div class="hud-overlay-metrics">
+            <div class="overlay-pill">
+              <span class="label">FPS:</span>
+              <span class="value text-neon-cyan" id="valFps">0.0</span>
+            </div>
+            <div class="overlay-pill">
+              <span class="label">LATENCY:</span>
+              <span class="value text-neon-green" id="valLatency">0ms</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera Control Action Bar -->
+        <div class="hud-action-bar">
+          <button id="btnStartStream" class="cyber-btn btn-primary">
+            <i class="fa-solid fa-play"></i> BẮT ĐẦU STREAM
+          </button>
+          <button id="btnStopStream" class="cyber-btn btn-danger" disabled>
+            <i class="fa-solid fa-stop"></i> DỪNG
+          </button>
+        </div>
+      </section>
+
+      <!-- Dashboard Analytics Panel -->
+      <section class="hud-analytics-card glass-panel">
+        
+        <!-- Top Key Metrics Cards -->
+        <div class="hud-metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon cyan"><i class="fa-solid fa-users"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">TỔNG ĐÁM ĐÔNG</span>
+              <span class="metric-value text-neon-cyan" id="valTotalCount">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon blue"><i class="fa-solid fa-mars"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">NAM (MALE)</span>
+              <span class="metric-value text-neon-blue" id="valMaleCount">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon pink"><i class="fa-solid fa-venus"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">NỮ (FEMALE)</span>
+              <span class="metric-value text-neon-pink" id="valFemaleCount">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon purple"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="metric-info">
+              <span class="metric-label">MẬT ĐỘ (DENSITY)</span>
+              <span class="metric-value text-neon-green" id="valDensity">LOW</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gender Ratio Progress Bar -->
+        <div class="hud-section-box margin-top">
+          <div class="box-title">
+            <span>TỶ LỆ GIỚI TÍNH (GENDER RATIO)</span>
+            <span id="valGenderRatioPct">50% / 50%</span>
+          </div>
+          <div class="hud-progress-bar">
+            <div class="progress-fill male-fill" id="barMale" style="width: 50%;"></div>
+            <div class="progress-fill female-fill" id="barFemale" style="width: 50%;"></div>
+          </div>
+        </div>
+
+        <!-- Realtime Crowd Telemetry / Activity Log -->
+        <div class="hud-section-box flex-grow margin-top">
+          <div class="box-title">
+            <i class="fa-solid fa-list-check text-neon-cyan"></i>
+            <span>NHẬT KÝ THEO DÕI (LIVE LOGS)</span>
+          </div>
+          <div class="hud-log-console" id="logConsole">
+            <div class="log-item system">[SYSTEM] Khởi tạo giao diện Cyber-HUD sẵn sàng...</div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="hud-footer">
+      <span>CROWD ANALYTICS MVP &copy; 2026 | Powered by FastTracker &amp; YOLO11</span>
+    </footer>
+
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Keep source diffs consistent across Windows and Linux/Modal.
+* text=auto eol=lf
+
+# Model assets are intentionally provisioned locally, never stored in this Git repository.
+*.pt binary
+*.pth binary
+*.onnx binary

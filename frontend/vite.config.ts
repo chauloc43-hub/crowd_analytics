@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: process.env.VERCEL ? 'dist' : '../src/api/static',
+    outDir: 'dist',
     emptyOutDir: true,
   },
   server: {

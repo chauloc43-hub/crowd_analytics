@@ -1,0 +1,15 @@
+# Production inference/runtime packages baked into the Modal image.
+# Training, evaluation, notebook and model-download packages are intentionally absent.
+ultralytics==8.4.63
+lap==0.5.13
+gradio==5.50.0
+fastapi==0.141.1
+# Required directly by the bounded multipart `/api/v1/video/analyze` endpoint;
+# do not rely on Gradio carrying it as a transitive dependency.
+python-multipart==0.0.32
+opencv-python-headless==4.12.0.88
+torch==2.8.0
+torchvision==0.23.0
+numpy==2.2.6
+pillow==11.3.0
+PyYAML==6.0.3
