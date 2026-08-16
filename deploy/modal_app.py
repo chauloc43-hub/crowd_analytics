@@ -189,9 +189,8 @@ image = _runtime_image()
 
 @app.function(
     image=image,
-    gpu="T4",
     timeout=900,
-    max_containers=1,
+    max_containers=2,
     scaledown_window=600,
 )
 @modal.concurrent(max_inputs=32)
