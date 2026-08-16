@@ -8,7 +8,7 @@ const getBaseUrl = () => {
       return `${window.location.protocol}//${host}:8000`;
     }
   }
-  return 'https://chauloc43-hub--crowd-analytics-v2-web.modal.run';
+  return 'https://nhozpropan3-crowd.hf.space';
 };
 
 const BASE_URL = getBaseUrl();
