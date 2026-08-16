@@ -1,0 +1,8 @@
+{
+  "name": "crowd-analytics",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd FE_crowd_analytics/frontend && npm install && npx vite build"
+  }
+}
