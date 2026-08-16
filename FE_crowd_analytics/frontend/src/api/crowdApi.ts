@@ -4,11 +4,13 @@ const getBaseUrl = () => {
   }
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) {
+    const port = window.location.port;
+    if ((host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) && port && port !== '8000') {
       return `${window.location.protocol}//${host}:8000`;
     }
+    return window.location.origin.replace(/\/$/, '');
   }
-  return 'https://hoangloc2011-crowda.hf.space';
+  return '';
 };
 
 const BASE_URL = getBaseUrl();
