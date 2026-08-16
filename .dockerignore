@@ -1,0 +1,31 @@
+# Ignore git history & metadata
+.git
+.gitignore
+.github
+.vercel
+
+# Ignore heavy frontend node_modules and dev build artifacts
+node_modules
+**/node_modules
+FE_crowd_analytics/frontend/node_modules
+frontend/node_modules
+FE_crowd_analytics/frontend/dist
+frontend/dist
+
+# Ignore temporary backups & videos
+crowd_tracking_release
+*.mp4
+*.avi
+*.mov
+*.pdf
+*.zip
+*.tar.gz
+
+# Ignore Python cache & temporary files
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
