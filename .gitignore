@@ -45,3 +45,4 @@ Thumbs.db
 /artifacts/**/metrics.json
 /runs/
 /.ultralytics*/
+.vercel

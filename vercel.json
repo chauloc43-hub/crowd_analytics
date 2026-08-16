@@ -1,0 +1,11 @@
+{
+  "framework": "vite",
+  "buildCommand": "cd FE_crowd_analytics/frontend && npm install && npm run build",
+  "outputDirectory": "FE_crowd_analytics/frontend/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
