@@ -1,4 +1,4 @@
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://chauloc43-hub--crowd-analytics-mvp-web.modal.run').replace(/\/$/, '');
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://chauloc43-hub--crowd-analytics-v2-web.modal.run').replace(/\/$/, '');
 const API_BASE = `${BASE_URL}/api/v1`;
 
 export async function createSession(mode = 'default', cameraId?: string) {
